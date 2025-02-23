@@ -2,21 +2,31 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    const options = {
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI is not defined');
+    }
+
+    // Add debug logging
+    console.log('Attempting to connect to MongoDB...');
+    
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      retryWrites: true,
+      w: 'majority',
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
-    };
+    });
 
-    await mongoose.connect(process.env.MONGODB_URI, options);
-    console.log('MongoDB Connected');
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    return conn;
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    // Don't exit the process on Vercel
-    if (process.env.NODE_ENV !== 'production') {
-      process.exit(1);
+    console.error('MongoDB connection error:', error.message);
+    // Log full error in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Full error:', error);
     }
+    throw error;
   }
 };
 
