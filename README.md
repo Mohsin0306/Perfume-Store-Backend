@@ -1,6 +1,15 @@
-# Perfume Store Backend
+# Pure Full Store Backend
 
-Backend API for the Perfume Store application built with Node.js, Express, and MongoDB.
+Backend API for the Pure Full Store e-commerce platform.
+
+## Features
+- RESTful API endpoints
+- MongoDB database integration
+- JWT Authentication
+- File uploads with Cloudinary
+- Real-time notifications with Socket.IO
+- Push notifications
+- Payment gateway integration
 
 ## Setup Instructions
 

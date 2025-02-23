@@ -14,24 +14,29 @@ const recentRoutes = require('./routes/RecentRoutes');
 const bannerRoutes = require('./routes/bannerRoutes');
 
 const app = express();
+const server = http.createServer(app);
 
-// Update CORS configuration
+// CORS configuration with specific options
 app.use(cors({
-  origin: function(origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'https://pure-fragrance.vercel.app'
-    ];
-    callback(null, true); // temporarily allow all origins for testing
-  },
+  origin: process.env.FRONTEND_URL || '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   credentials: true
 }));
 
 // Middleware
 app.use(express.json());
 
+// Create uploads directory if it doesn't exist
+const uploadDir = path.join(__dirname, 'tmp', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 // Connect to MongoDB
 connectDB();
+
+// Initialize Socket.IO
+initializeSocket(server);
 
 // Configure web-push
 webpush.setVapidDetails(
@@ -113,22 +118,17 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Basic health check route - Updated for verification
+// Basic route with status code
 app.get('/', (req, res) => {
   res.status(200).json({ 
     success: true,
-    message: 'Welcome to Perfume Store API - v2',
-    status: 'online'
+    message: 'Welcome to Perfume Store API' 
   });
 });
 
-// Export the Express app for Vercel
-module.exports = app;
+// Start server
+const PORT = process.env.PORT || 5000;
 
-// Only start the server when running locally
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-}
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
