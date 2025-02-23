@@ -14,23 +14,15 @@ const recentRoutes = require('./routes/RecentRoutes');
 const bannerRoutes = require('./routes/bannerRoutes');
 
 const app = express();
-const server = http.createServer(app);
 
-// Update CORS configuration to be more flexible for production
+// Update CORS configuration
 app.use(cors({
   origin: function(origin, callback) {
-    // In production, you should list your actual frontend domain(s)
     const allowedOrigins = [
       'http://localhost:3000',
-      'https://pure-fragrance.vercel.app', // Add your frontend Vercel URL
-      'https://pure-fragrance.vercel.app' // Add this to your env variables
+      'https://pure-fragrance.vercel.app'
     ];
-    
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    callback(null, true); // temporarily allow all origins for testing
   },
   credentials: true
 }));
@@ -38,17 +30,8 @@ app.use(cors({
 // Middleware
 app.use(express.json());
 
-// Create uploads directory if it doesn't exist
-const uploadDir = path.join(__dirname, 'tmp', 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
 // Connect to MongoDB
 connectDB();
-
-// Initialize Socket.IO
-initializeSocket(server);
 
 // Configure web-push
 webpush.setVapidDetails(
@@ -138,10 +121,13 @@ app.get('/', (req, res) => {
   });
 });
 
-// Modify the server startup section
-const PORT = process.env.PORT || 5000;
+// Export the Express app for Vercel
+module.exports = app;
 
-// Remove IP_ADDRESS binding as Vercel handles this
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Only start the server when running locally
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
