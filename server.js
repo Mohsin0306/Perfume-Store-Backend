@@ -113,11 +113,12 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Basic route with status code
+// Basic health check route - Updated for verification
 app.get('/', (req, res) => {
   res.status(200).json({ 
     success: true,
-    message: 'Welcome to Perfume Store API' 
+    message: 'Welcome to Perfume Store API - v2',
+    status: 'online'
   });
 });
 
